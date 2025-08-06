@@ -25,7 +25,7 @@ async function startSock() {
 
         if (connection === 'open') {
             console.log('? Bot tersambung ke WhatsApp!');
-	startLoop(sock); // Mulai input interaktif
+			startMessageLoop(sock); // Mulai input interaktif
         }
 
         if (connection === 'close') {
@@ -69,39 +69,37 @@ process.on('unhandledRejection', (err) => {
     console.error('?? Unhandled Rejection:', err);
 });
 
-function startLoop(sock) {
+function startMessageLoop(sock) {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     });
 
-    function tanya() {
-        rl.question("Masukan nomor HP: ", (phone) => {
-            rl.question("Masukan Pesan: ", async (message) => {
-                const jid = phone.replace(/^0/, "62") + "@s.whatsapp.net";
+    rl.question("Masukan Nomor HP: ", (phone) => {
+        const nomor = phone.replace(/^0/, "62") + "@s.whatsapp.net";
 
-                try {
-                    await sock.sendMessage(jid, { text: message });
-                    console.log("Alert - Pesan terkirim");
-                } catch (err) {
-                    console.error("? Gagal mengirim pesan:", err);
+        function kirimPesan() {
+            rl.question("Masukan Pesan (atau ketik 'exit' untuk keluar): ", async (message) => {
+                if (message.toLowerCase() === 'exit') {
+                    console.log("Program berakhir.");
+                    rl.close();
+                    process.exit();
+                    return;
                 }
 
-                rl.question("Ingin input lagi (Y/N): ", (jawab) => {
-                    if (jawab.toLowerCase() === 'y') {
-                        console.log("");
-                        tanya(); // ulang lagi
-                    } else {
-                        console.log("Program berakhir.");
-                        rl.close();
-                        process.exit();
-                    }
-                });
-            });
-        });
-    }
+                try {
+                    await sock.sendMessage(nomor, { text: message });
+                    console.log(`Alert - Pesan Terkirim ke Nomor ${phone}`);
+                } catch (err) {
+                    console.error("❌ Gagal mengirim pesan:", err);
+                }
 
-    tanya(); // mulai
+                kirimPesan(); // Ulangi lagi untuk pesan berikutnya
+            });
+        }
+
+        kirimPesan(); // Mulai input pesan pertama
+    });
 }
 
 startSock();
