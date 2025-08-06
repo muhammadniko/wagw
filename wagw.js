@@ -10,7 +10,9 @@ async function startSock() {
     const sock = makeWASocket({
         logger: P({ level: 'silent' }),
         auth: state,
-        printQRInTerminal: false
+        printQRInTerminal: false,
+		browser: ['Official HRGA', 'Chrome', '139.0.1']
+		
     });
 
     sock.ev.on('creds.update', saveCreds);
